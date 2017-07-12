@@ -1,4 +1,4 @@
-package gossip_protocol;
+package gossip_protocol.src;
 
 import java.util.*;
 

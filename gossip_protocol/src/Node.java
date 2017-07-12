@@ -1,4 +1,4 @@
-package gossip_protocol;
+package gossip_protocol.src;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;  
@@ -25,8 +25,8 @@ public class Node {
 			Thread.sleep(100);
 			System.out.print(">");
 		    in = new Scanner(System.in);
-		    while (in.hasNext()){
-		        String input = in.next();
+		    while (in.hasNextLine()){
+		        String input = in.nextLine();
 				if (input.equalsIgnoreCase("exit") || input.equalsIgnoreCase("quit") || input.equalsIgnoreCase("q")) {
 					break;
 				}
@@ -47,7 +47,6 @@ public class Node {
     public static void main(String[]args) {
 		Node n = new Node();
 		n.run();
-
     }
     
 
