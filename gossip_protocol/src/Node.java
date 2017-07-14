@@ -18,8 +18,15 @@ public class Node {
 	}
 
     public void run() {
-    	Thread t1 = new Thread(new ListenerThread());
-		t1.start();
+
+    	//Listener thread for incoming messages
+    	Thread listenerThread = new Thread(new ListenerThread());
+		listenerThread.start();
+
+		//Gossiper thread to broadcast gossip messages
+		Thread gossiperThread = new Thread(new GossiperThread());
+		gossiperThread.start();
+
 		Scanner in = null;
 		try {
 			Thread.sleep(100);
@@ -30,11 +37,15 @@ public class Node {
 				if (input.equalsIgnoreCase("exit") || input.equalsIgnoreCase("quit") || input.equalsIgnoreCase("q")) {
 					break;
 				}
+				//Worker thread to handle commands
 				_executor.execute(new WorkerThread(input));
 				Thread.sleep(100);
 				System.out.print(">");
 		    }
-		    t1.join();
+
+		    //close out threads
+		    listenerThread.join();
+		    gossiperThread.join();
 		    _executor.shutdown();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
