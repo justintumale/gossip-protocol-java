@@ -71,6 +71,7 @@ public class WorkerThread implements Runnable {
 
     private void gracefulShutdown() {
     	System.out.println("Graceful shutdown");
+        //Same as fail?
     }
 
 }
