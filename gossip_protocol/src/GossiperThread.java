@@ -10,11 +10,11 @@ public class GossiperThread implements Runnable {
 	}
 
 	public String createGossipDigest() {
-
+		return null;
 	}
 
 	public void sendGossip() {
-		
+
 	}
 
 	public void run() {

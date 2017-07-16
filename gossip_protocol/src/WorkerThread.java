@@ -10,14 +10,31 @@ public class WorkerThread implements Runnable {
 	private String _command;
 	private String _nodeAddress;
 	private Socket _outgoingSocket;
+    private Socket _listenerSocket;
+    private BufferedReader _br;
 
-    public WorkerThread(String command) {
-    	_command = command;
+    public WorkerThread(Socket listenerSocket) {
+    	_listenerSocket = listenerSocket;
     }
 
     public void run() {
-    	String[] parsedCommand = parseCommand();
-		dispatchCommand(parsedCommand);
+        try {
+            System.out.println("Starting a worker thread.");
+            _br = new BufferedReader(new InputStreamReader(_listenerSocket.getInputStream()));
+            _command = _br.readLine();
+            System.out.println("Server received command from user: " + _command);
+            String[] parsedCommand = parseCommand();
+            dispatchCommand(parsedCommand);
+        } catch (IOException e) {
+
+        }
+        finally {
+            try {
+                _listenerSocket.close();
+            } catch (IOException e) {
+
+            }
+        }
     }
 
     private String[] parseCommand() {
