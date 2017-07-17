@@ -4,6 +4,8 @@ import java.util.*;
 
 public class GossiperThread implements Runnable {
 
+	protected ArrayList<String> alliances;
+
 	public GossiperThread() {
 
 

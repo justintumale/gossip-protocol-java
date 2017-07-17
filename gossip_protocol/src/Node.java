@@ -15,6 +15,8 @@ public class Node {
 	private ServerSocket _serverSocket = null;
 	private Socket _gossiperSocket = null;
 	private ArrayList<String> _alliances = null;
+	private ListenerThread _listenerThread = null;
+	private GossiperThread _gossiperThread = null;
 
 	public Node(String address) {
 		initializeNode();
@@ -42,19 +44,27 @@ public class Node {
     		_serverSocket = new ServerSocket(_port);
 
 	    	//Listener thread for incoming messages
-	    	Thread listenerThread = new Thread(new ListenerThread(_executor, _serverSocket));
-			listenerThread.start();
+	    	Thread tListenerThread;
+	    	if (_listenerThread == null) {
+	    		_listenerThread = new ListenerThread(_executor, _serverSocket);
+	    	} 
+	    	tListenerThread = new Thread(_listenerThread);
+			tListenerThread.start();
 
 			//Gossiper thread to broadcast gossip messages
-			Thread gossiperThread = new Thread(new GossiperThread());
-			gossiperThread.start();
+			Thread tGossiperThread;
+			if (_gossiperThread == null) {
+				_gossiperThread = new GossiperThread();
+			} 
+			tGossiperThread = new Thread(_gossiperThread);
+			tGossiperThread.start();
 
 			//Wait for threads to finish
 			try {
-				listenerThread.join();
-				gossiperThread.join();
+				tListenerThread.join();
+				tGossiperThread.join();
 			} catch (InterruptedException e) {
-				
+
 			}
 		
 		} catch (IOException e) {
@@ -74,6 +84,29 @@ public class Node {
 
 			}
 		}
+    }
+
+    public void attachThreadAndRun(ListenerThread listenerThread) throws IOException {
+    	if (_listenerThread != null) {
+    		throw new UnsupportedOperationException("A ListenerThread already exists for this thread.");
+    	}
+    	_listenerThread = listenerThread;
+    	_listenerThread.alliances = _alliances;
+
+		Thread tListenerThread = new Thread(_listenerThread);
+		tListenerThread.start();
+    }
+
+    public void attachThreadAndRun(GossiperThread gossiperThread) throws IOException {
+    	if (_gossiperThread != null) {
+    		throw new UnsupportedOperationException("A GossiperThread already exists for this thread.");
+    	}
+
+    	_gossiperThread = gossiperThread;
+    	_gossiperThread.alliances = _alliances;
+
+		Thread tGossiperThread = new Thread(_gossiperThread);
+		tGossiperThread.start();  
     }
 
     public static void main(String[]args) {

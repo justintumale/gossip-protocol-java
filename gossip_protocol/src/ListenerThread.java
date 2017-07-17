@@ -13,7 +13,7 @@ public class ListenerThread implements Runnable {
 	private ExecutorService _executor = null;
 	private ServerSocket _serverSocket = null;
 	private BufferedReader _br = null;
-	private ArrayList<String> _membership;
+	protected ArrayList<String> alliances;
 
 	public ListenerThread(ExecutorService executor, ServerSocket serverSocket) {
 		_executor = executor;
