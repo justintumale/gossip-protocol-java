@@ -79,3 +79,7 @@
 .metadata/.mylyn/.taskListIndex/segments_1
 
 .project
+
+*.class
+
+*.java~

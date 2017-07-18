@@ -63,27 +63,19 @@ public class Node {
 			try {
 				tListenerThread.join();
 				tGossiperThread.join();
-			} catch (InterruptedException e) {
 
+				System.out.println("Shutting down threads.");
+				_serverSocket.close();
+				_gossiperSocket.close();
+				_executor.shutdown();
+
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
 		
 		} catch (IOException e) {
-
-		} finally {
-			try {
-				if (_serverSocket != null) {
-					_serverSocket.close();
-				}
-				if (_gossiperSocket != null) {
-					_gossiperSocket.close();
-				}
-				if (_executor != null) {
-					_executor.shutdown();
-				}
-			} catch (IOException e) {
-
-			}
-		}
+			e.printStackTrace();
+		} 
     }
 
     public void attachThreadAndRun(ListenerThread listenerThread) throws IOException {

@@ -3,6 +3,7 @@ package gossip_protocol.src;
 import java.util.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.io.BufferedReader;
@@ -24,12 +25,18 @@ public class ListenerThread implements Runnable {
 		System.out.println("Starting listener thread...");
 		try {
 			while(true) {
-				Socket listenerSocket = _serverSocket.accept();
-				System.out.println("connection accepted");
-				_executor.execute(new WorkerThread(listenerSocket));
-			}
+				try {
+					Socket listenerSocket = _serverSocket.accept();
+					System.out.println("Server connection accepted.");
+					_executor.execute(new WorkerThread(listenerSocket, _serverSocket));
+				} catch (SocketException e) {
+					e.printStackTrace();
+					break;
+				}
+			}	
+			System.out.println("Finished listener thread.");
 		} catch (IOException e) {
-
+			e.printStackTrace();
 		}
 	}
 
