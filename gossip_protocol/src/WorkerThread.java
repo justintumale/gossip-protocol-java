@@ -4,6 +4,7 @@ import java.util.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WorkerThread implements Runnable {
 
@@ -13,10 +14,13 @@ public class WorkerThread implements Runnable {
     private Socket _listenerSocket;
     private ServerSocket _serverSocket;
     private BufferedReader _br;
+    private final AtomicBoolean _isHealthy;
 
-    public WorkerThread(Socket listenerSocket, ServerSocket serverSocket) {
+
+    public WorkerThread(Socket listenerSocket, ServerSocket serverSocket, AtomicBoolean isHealthy) {
     	_listenerSocket = listenerSocket;
         _serverSocket = serverSocket;
+        _isHealthy = isHealthy;
     }
 
     public void run() {
@@ -91,6 +95,7 @@ public class WorkerThread implements Runnable {
         try {
             _listenerSocket.close();
             _serverSocket.close();
+            _isHealthy.set(false);
         } catch (IOException e) {
             e.printStackTrace();
         }

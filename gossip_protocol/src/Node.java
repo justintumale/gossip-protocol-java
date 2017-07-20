@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService;
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Node {
 
@@ -13,19 +14,22 @@ public class Node {
 	private String _address = null;
 	private int _port = -1;
 	private ServerSocket _serverSocket = null;
-	private Socket _gossiperSocket = null;
-	private ArrayList<String> _alliances = null;
 	private ListenerThread _listenerThread = null;
 	private GossiperThread _gossiperThread = null;
+	private ArrayList<Member> _alliances = null;
+	private Member _thisMember = null;
+	private final AtomicBoolean _isHealthy = new AtomicBoolean(true);
 
 	public Node(String address) {
-		initializeNode();
 		parseAddress(address);
+		initializeNode();
 	}
 
 	private void initializeNode() {
 		_executor = Executors.newCachedThreadPool();
-		_alliances = new ArrayList<String>();
+		_alliances = new ArrayList<Member>();
+		_thisMember = new Member(_address, _port);
+		_alliances.add(_thisMember);
 	}
 
 	private void parseAddress(String address) {
@@ -46,7 +50,7 @@ public class Node {
 	    	//Listener thread for incoming messages
 	    	Thread tListenerThread;
 	    	if (_listenerThread == null) {
-	    		_listenerThread = new ListenerThread(_executor, _serverSocket);
+	    		_listenerThread = new ListenerThread(_executor, _serverSocket, _isHealthy);
 	    	} 
 	    	tListenerThread = new Thread(_listenerThread);
 			tListenerThread.start();
@@ -54,7 +58,7 @@ public class Node {
 			//Gossiper thread to broadcast gossip messages
 			Thread tGossiperThread;
 			if (_gossiperThread == null) {
-				_gossiperThread = new GossiperThread();
+				_gossiperThread = new GossiperThread(_thisMember, _alliances, _isHealthy);
 			} 
 			tGossiperThread = new Thread(_gossiperThread);
 			tGossiperThread.start();
@@ -66,7 +70,6 @@ public class Node {
 
 				System.out.println("Shutting down threads.");
 				_serverSocket.close();
-				_gossiperSocket.close();
 				_executor.shutdown();
 
 			} catch (InterruptedException e) {
