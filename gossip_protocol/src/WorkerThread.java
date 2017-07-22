@@ -15,11 +15,14 @@ public class WorkerThread implements Runnable {
     private ServerSocket _serverSocket;
     private BufferedReader _br;
     private final AtomicBoolean _isHealthy;
+    protected ArrayList<Member> _alliances;
 
 
-    public WorkerThread(Socket listenerSocket, ServerSocket serverSocket, AtomicBoolean isHealthy) {
+
+    public WorkerThread(Socket listenerSocket, ServerSocket serverSocket, ArrayList<Member> alliances, AtomicBoolean isHealthy) {
     	_listenerSocket = listenerSocket;
         _serverSocket = serverSocket;
+        _alliances = alliances;
         _isHealthy = isHealthy;
     }
 
@@ -66,6 +69,9 @@ public class WorkerThread implements Runnable {
             case "test":
                 testMethod();
                 break;
+            case "gossip":
+                receiveGossip(parsedCommand[1]);
+                break;
     		default:
     			break;
     	}
@@ -108,6 +114,14 @@ public class WorkerThread implements Runnable {
 
     private void testMethod() {
         System.out.println("test...");
+    }
+
+    private void receiveGossip(String gossipDigest) {
+        mergeGossipDigest(gossipDigest);
+    }
+
+    private void mergeGossipDigest(String gossipDigest) {
+
     }
 
 }
