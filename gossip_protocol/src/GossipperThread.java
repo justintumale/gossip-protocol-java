@@ -22,6 +22,7 @@ public class GossipperThread implements Runnable {
 
 	public String createGossipDigest() {
 		StringBuilder digestBuilder = new StringBuilder();
+		digestBuilder.append("gossip ");
 		for (Member member : alliances) {
 			digestBuilder.append(member.toString());
 		}
@@ -32,7 +33,7 @@ public class GossipperThread implements Runnable {
 		_thisMember.updateHeartbeat();
 
 		String gossipDigest = createGossipDigest();
-
+		System.out.println("gossip digest created: " + gossipDigest);
 		Collections.shuffle(alliances);
 
 		try {
@@ -52,9 +53,9 @@ public class GossipperThread implements Runnable {
 		System.out.println("Starting gossiper thread...");
 		try {
 			while (_isHealthy.get()) {
-				Thread.sleep(3000);
+				Thread.sleep(10000);
 				System.out.println("Sending gossip...");
-
+				sendGossip();
 				System.out.println("Gossip sent");
 			}
 		} catch (InterruptedException e) {

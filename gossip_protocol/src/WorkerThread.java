@@ -30,15 +30,14 @@ public class WorkerThread implements Runnable {
         try {
             System.out.println("Starting a worker thread...");
             _br = new BufferedReader(new InputStreamReader(_listenerSocket.getInputStream()));
-            while (true) {
-                _command = _br.readLine();
-                System.out.println("Server received command from user: " + _command);
-                String[] parsedCommand = parseCommand();
-                if (parsedCommand[0].equalsIgnoreCase("q") || parsedCommand[0].equalsIgnoreCase("quit") || parsedCommand[0].equalsIgnoreCase("exit")) {
-                    break;
-                }
-                dispatchCommand(parsedCommand);
+            _command = _br.readLine();
+            System.out.println("Server received command from user: " + _command);
+            String[] parsedCommand = parseCommand();
+            if (parsedCommand[0].equalsIgnoreCase("q") || parsedCommand[0].equalsIgnoreCase("quit") || parsedCommand[0].equalsIgnoreCase("exit")) {
+                    dispatchCommand(new String[]{"fail"});
             }
+            dispatchCommand(parsedCommand);
+            
             System.out.println("Finished worker thread.");
         } catch (IOException e) {
             e.printStackTrace();
@@ -47,6 +46,9 @@ public class WorkerThread implements Runnable {
 
     private String[] parseCommand() {
     	//remove extra white spaces
+        if (_command == null) {
+            return null;
+        }
         _command = _command.replaceAll(" +", " ").toLowerCase();
     	return _command.split(" ");
     }
