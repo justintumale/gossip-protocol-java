@@ -29,17 +29,20 @@ public class WorkerThread implements Runnable {
     public void run() {
         try {
             Logger.info("Starting a worker thread...");
-     
-            _br = new BufferedReader(new InputStreamReader(_listenerSocket.getInputStream()));
-            _command = _br.readLine();
-            Logger.info("Server received command from user: " + _command);
-            String[] parsedCommand = parseCommand();
-            if (parsedCommand[0].equalsIgnoreCase("q") || parsedCommand[0].equalsIgnoreCase("quit") || parsedCommand[0].equalsIgnoreCase("exit")) {
-                    dispatchCommand(new String[]{"fail"});
-    
+            while(true) {
+                _br = new BufferedReader(new InputStreamReader(_listenerSocket.getInputStream()));
+                _command = _br.readLine();
+                Logger.info("Server received command from user: " + _command);
+                String[] parsedCommand = parseCommand();
+                if (parsedCommand[0].equalsIgnoreCase("q") || parsedCommand[0].equalsIgnoreCase("quit") || parsedCommand[0].equalsIgnoreCase("exit")) {
+                        dispatchCommand(new String[]{"fail"});
+                        break;
+                }
+                dispatchCommand(parsedCommand);
+                if (parsedCommand[0].equals("gossip")) {
+                    break;
+                }
             }
-            dispatchCommand(parsedCommand);
-          
             Logger.info("Finished worker thread.");
         } catch (IOException e) {
             e.printStackTrace();
