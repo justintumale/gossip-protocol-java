@@ -51,7 +51,7 @@ public class Member {
     }
 
     public String toString() {
-        return _address + ":" + String.valueOf(_port) + ":" + String.valueOf(_heartbeat) + "|";
+        return _address + ":" + String.valueOf(_port) + ":" + String.valueOf(_heartbeat);
     }
 
 }

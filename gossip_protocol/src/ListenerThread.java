@@ -26,19 +26,19 @@ public class ListenerThread implements Runnable {
 	}
 
 	public void run() {
-		System.out.println("Starting listener thread...");
+		Logger.info("Starting listener thread...");
 		try {
 			while(true) {
 				try {
 					Socket listenerSocket = _serverSocket.accept();
-					System.out.println("Server connection accepted.");
+					Logger.info("Server connection accepted.");
 					_executor.execute(new WorkerThread(listenerSocket, _serverSocket, alliances, _isHealthy));
 				} catch (SocketException e) {
 					e.printStackTrace();
 					break;
 				}
 			}	
-			System.out.println("Finished listener thread.");
+			Logger.info("Finished listener thread.");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

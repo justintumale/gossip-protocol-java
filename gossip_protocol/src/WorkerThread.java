@@ -28,17 +28,19 @@ public class WorkerThread implements Runnable {
 
     public void run() {
         try {
-            System.out.println("Starting a worker thread...");
+            Logger.info("Starting a worker thread...");
+     
             _br = new BufferedReader(new InputStreamReader(_listenerSocket.getInputStream()));
             _command = _br.readLine();
-            System.out.println("Server received command from user: " + _command);
+            Logger.info("Server received command from user: " + _command);
             String[] parsedCommand = parseCommand();
             if (parsedCommand[0].equalsIgnoreCase("q") || parsedCommand[0].equalsIgnoreCase("quit") || parsedCommand[0].equalsIgnoreCase("exit")) {
                     dispatchCommand(new String[]{"fail"});
+    
             }
             dispatchCommand(parsedCommand);
-            
-            System.out.println("Finished worker thread.");
+          
+            Logger.info("Finished worker thread.");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -59,7 +61,7 @@ public class WorkerThread implements Runnable {
                 if (parsedCommand.length > 1) {
     			    connect(parsedCommand[1]);
                 } else {
-                    System.out.println("Please specify IP address to connect to.");
+                    Logger.error("Please specify IP address to connect to.");
                 }
     			break;
     		case "fail":
@@ -82,14 +84,14 @@ public class WorkerThread implements Runnable {
     private void connect(String address) {
         String[]addressAndPort = address.split(":");
         if (addressAndPort.length != 2) {
-            System.out.println("Please specify address and port in the proper format \"<address>:<port>\"");
+            Logger.error("Please specify address and port in the proper format \"<address>:<port>\"");
             return;
         }
         
         address = addressAndPort[0];
         int port = Integer.valueOf(addressAndPort[1]);
         
-        System.out.println("Connecting to " + address + ":" + port);
+        Logger.info("Connecting to " + address + ":" + port);
     	try {
     		_outgoingSocket = new Socket(address, port);
     		_outgoingSocket.close();
@@ -99,7 +101,7 @@ public class WorkerThread implements Runnable {
     }
 
     private void fail() {
-    	System.out.println("Failing node...");
+    	Logger.info("Failing node...");
         try {
             _listenerSocket.close();
             _serverSocket.close();
@@ -110,16 +112,21 @@ public class WorkerThread implements Runnable {
     }
 
     private void gracefulShutdown() {
-    	System.out.println("Graceful shutdown");
+    	Logger.info("Graceful shutdown");
         //Same as fail?
     }
 
     private void testMethod() {
-        System.out.println("test...");
+        Logger.info("test...");
     }
 
     private void receiveGossip(String gossipDigest) {
-        mergeGossipDigest(gossipDigest);
+        String[] memberArray = gossipDigest.split("-");
+        Logger.info("Gossip message received:   ");
+        for (int i = 0; i < memberArray.length; i++) {
+            Logger.info("        " + memberArray[i]);
+        }
+        //mergeGossipDigest(gossipDigest);
     }
 
     private void mergeGossipDigest(String gossipDigest) {

@@ -68,7 +68,7 @@ public class Node {
 				tListenerThread.join();
 				tGossipperThread.join();
 
-				System.out.println("Shutting down threads.");
+				Logger.info("Shutting down threads.");
 				_serverSocket.close();
 				_executor.shutdown();
 
