@@ -50,7 +50,7 @@ public class Node {
 	    	//Listener thread for incoming messages
 	    	Thread tListenerThread;
 	    	if (_listenerThread == null) {
-	    		_listenerThread = new ListenerThread(_executor, _serverSocket, _alliances, _isHealthy);
+	    		_listenerThread = new ListenerThread(_executor, _serverSocket, _alliances, _isHealthy, _address, _port);
 	    	} 
 	    	tListenerThread = new Thread(_listenerThread);
 			tListenerThread.start();

@@ -9,45 +9,51 @@ public class Member {
     private long _localTime;
 
     public Member() {
-	_heartbeat = 0;
+        _heartbeat = 0;
     }
 
     public Member(String address, int port) {
-	_address = address;
-	_port = port;
-	_heartbeat = 0;
+        _address = address;
+    	_port = port;
+    	_heartbeat = 0;
+    }
+
+    public Member(String address, int port, long heartbeat) {
+        _address = address;
+        _port = port;
+        _heartbeat = heartbeat;
     }
 
     public void setAddress(String address) {
-	_address = address;
+	   _address = address;
     }
 
     public String getAddress() {
-	return _address;
+	   return _address;
     }
 
     public void setPort(int port) {
-	_port = port;
+	   _port = port;
     }
 
     public int getPort() {
-	return _port;
+	   return _port;
     }
 
-    public void updateHeartbeat() {
-	_heartbeat++;
+    public void incrementHeartbeat() {
+	   _heartbeat++;
     }
 
     public long getHeartbeat() {
-	return _heartbeat;
+	   return _heartbeat;
     }
 
     public void setLocalTime(long localTime) {
-	_localTime = localTime;
+	   _localTime = localTime;
     }
 
     public long  getLocalTime() {
-	return _localTime;
+	   return _localTime;
     }
 
     public String toString() {

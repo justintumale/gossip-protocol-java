@@ -30,7 +30,7 @@ public class GossipperThread implements Runnable {
 	}
 
 	public void sendGossip() {
-		_thisMember.updateHeartbeat();
+		_thisMember.incrementHeartbeat();
 
 		String gossipDigest = createGossipDigest();
 		Logger.info("gossip digest created: " + gossipDigest);

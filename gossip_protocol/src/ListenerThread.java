@@ -17,12 +17,17 @@ public class ListenerThread implements Runnable {
 	private BufferedReader _br = null;
 	protected ArrayList<Member> alliances;
 	private final AtomicBoolean _isHealthy;
+	private String _address;
+	private int _port;
 
-	public ListenerThread(ExecutorService executor, ServerSocket serverSocket, ArrayList<Member> alliances, AtomicBoolean isHealthy) {
+	public ListenerThread(ExecutorService executor, ServerSocket serverSocket, ArrayList<Member> alliances, 
+		AtomicBoolean isHealthy, String address, int port) {
 		_executor = executor;
 		_serverSocket = serverSocket;
 		this.alliances = alliances;
 		_isHealthy = isHealthy;
+		_address = address;
+		_port = port;
 	}
 
 	public void run() {
@@ -32,7 +37,7 @@ public class ListenerThread implements Runnable {
 				try {
 					Socket listenerSocket = _serverSocket.accept();
 					Logger.info("Server connection accepted.");
-					_executor.execute(new WorkerThread(listenerSocket, _serverSocket, alliances, _isHealthy));
+					_executor.execute(new WorkerThread(listenerSocket, _serverSocket, alliances, _isHealthy, _address, _port));
 				} catch (SocketException e) {
 					e.printStackTrace();
 					break;
