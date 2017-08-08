@@ -22,11 +22,11 @@ public class WorkerThread implements Runnable {
 
     private BufferedReader _br;
     private final AtomicBoolean _isHealthy;
-    protected ArrayList<Member> _alliances;
+    protected HashMap<String, Member> _alliances;
     private String _address;
     private int _port;
 
-    public WorkerThread(Socket listenerSocket, ServerSocket serverSocket, ArrayList<Member> alliances, 
+    public WorkerThread(Socket listenerSocket, ServerSocket serverSocket, HashMap<String, Member> alliances, 
     AtomicBoolean isHealthy, String address, int port) {
     	_listenerSocket = listenerSocket;
         _serverSocket = serverSocket;
@@ -199,19 +199,45 @@ public class WorkerThread implements Runnable {
         for (int i = 0; i < memberArray.length; i++) {
             Logger.info("        " + memberArray[i]);
         }
-        //mergeGossipDigest(gossipDigest);
+
+        String[]gossipArray = createGossipArrayFromDigest(gossipDigest);
+
+        synchronized(this) {
+            mergeGossipArray(gossipArray);
+        }
         return false;
     }
 
-    private void mergeGossipDigest(String gossipDigest) {
+    private String[] createGossipArrayFromDigest(String gossipDigest) {
+        return gossipDigest.split("-");
+    }
 
+    private void mergeGossipArray(String[] gossipArray) {
+        if (gossipArray.length < 1) {
+            Logger.error("Could not merge gossip message.");
+        }
+        for (int i = 0; i < gossipArray.length; i++) {
+            String[]memberArray = gossipArray[i].split(":");
+            if (_alliances.containsKey(memberArray[0] + ":" + memberArray[1])) {
+                Member existingMember = _alliances.get(memberArray[0] + ":" + memberArray[1]);
+                if (existingMember.getHeartbeat() < Long.parseLong(memberArray[2])) {
+                    existingMember.setHeartbeat(Long.parseLong(memberArray[2]));
+                    //TODO set local time for existing member
+                    _alliances.put(memberArray[0] + ":" + memberArray[1], existingMember);
+                }
+            } else {
+                Member newMember = new Member(memberArray[0], Integer.parseInt(memberArray[1]));
+                //TODO set local time for new member
+                _alliances.put(memberArray[0] + ":" + memberArray[1], newMember);
+            }
+        }
     }
 
     private void addToMembershipList(String address, int port) {
         Logger.info("Adding " + address + ":" + port + " to alliances...");
         Member ally = new Member(address, port);
         synchronized(this) {
-            _alliances.add(ally);
+            _alliances.put(ally.getAddress() + String.valueOf(ally.getPort()), ally);
         }
         Logger.info(address + ":" + port + " successfully added to alliances.");
     }

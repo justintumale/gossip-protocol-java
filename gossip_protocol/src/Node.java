@@ -16,7 +16,7 @@ public class Node {
 	private ServerSocket _serverSocket = null;
 	private ListenerThread _listenerThread = null;
 	private GossipperThread _gossipperThread = null;
-	private ArrayList<Member> _alliances = null;
+	private HashMap<String, Member> _alliances = null;
 	private Member _thisMember = null;
 	private final AtomicBoolean _isHealthy = new AtomicBoolean(true);
 
@@ -27,9 +27,9 @@ public class Node {
 
 	private void initializeNode() {
 		_executor = Executors.newCachedThreadPool();
-		_alliances = new ArrayList<Member>();
+		_alliances = new HashMap<String, Member>();
 		_thisMember = new Member(_address, _port);
-		_alliances.add(_thisMember);
+		_alliances.put(_thisMember.getAddress() + String.valueOf(_thisMember.getPort()), _thisMember);
 	}
 
 	private void parseAddress(String address) {

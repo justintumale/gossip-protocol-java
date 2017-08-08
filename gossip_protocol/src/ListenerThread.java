@@ -15,12 +15,12 @@ public class ListenerThread implements Runnable {
 	private ExecutorService _executor = null;
 	private ServerSocket _serverSocket = null;
 	private BufferedReader _br = null;
-	protected ArrayList<Member> alliances;
+	protected HashMap<String, Member> alliances;
 	private final AtomicBoolean _isHealthy;
 	private String _address;
 	private int _port;
 
-	public ListenerThread(ExecutorService executor, ServerSocket serverSocket, ArrayList<Member> alliances, 
+	public ListenerThread(ExecutorService executor, ServerSocket serverSocket, HashMap<String, Member> alliances, 
 		AtomicBoolean isHealthy, String address, int port) {
 		_executor = executor;
 		_serverSocket = serverSocket;

@@ -2,7 +2,7 @@ package gossip_protocol.src;
 
 import java.util.*;
 
-public class Member {
+public class Member implements Comparable<Member> {
     private String _address;
     private int _port;
     private long _heartbeat;
@@ -48,6 +48,10 @@ public class Member {
 	   return _heartbeat;
     }
 
+    public void setHeartbeat(long heartbeat) {
+       _heartbeat = heartbeat;
+    }
+
     public void setLocalTime(long localTime) {
 	   _localTime = localTime;
     }
@@ -59,5 +63,30 @@ public class Member {
     public String toString() {
         return _address + ":" + String.valueOf(_port) + ":" + String.valueOf(_heartbeat);
     }
+
+    public int compareTo(Member m)
+    {
+        //compare address
+        String[]address1 = this.getAddress().split("\\.");
+        String[]address2 = m.getAddress().split("\\.");
+
+        for (int i = 0; i < 4; i++) {
+            if (Integer.parseInt(address1[i]) > Integer.parseInt(address2[i])) {
+                return 1;
+            } else if (Integer.parseInt(address1[i]) < Integer.parseInt(address2[i])) {
+                return -1;
+            }
+        }
+
+        //if address is the same, compare port
+        if (this.getPort() > m.getPort()) {
+            return 1;
+        } else if (this.getPort() < m.getPort()) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
+
 
 }
