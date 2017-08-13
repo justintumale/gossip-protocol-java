@@ -29,6 +29,7 @@ public class Node {
 		_executor = Executors.newCachedThreadPool();
 		_alliances = new HashMap<String, Member>();
 		_thisMember = new Member(_address, _port);
+		_thisMember.setLocalTime(System.currentTimeMillis());
 		_alliances.put(_thisMember.getAddress() + String.valueOf(_thisMember.getPort()), _thisMember);
 	}
 

@@ -218,16 +218,23 @@ public class WorkerThread implements Runnable {
         }
         for (int i = 0; i < gossipArray.length; i++) {
             String[]memberArray = gossipArray[i].split(":");
-            if (_alliances.containsKey(memberArray[0] + ":" + memberArray[1])) {
-                Member existingMember = _alliances.get(memberArray[0] + ":" + memberArray[1]);
+
+            Member existingMember = _alliances.get(memberArray[0] + ":" + memberArray[1]);
+
+            if (existingMember != null) {
                 if (existingMember.getHeartbeat() < Long.parseLong(memberArray[2])) {
                     existingMember.setHeartbeat(Long.parseLong(memberArray[2]));
-                    //TODO set local time for existing member
+                    //set new local time for existing member
+                    existingMember.setLocalTime(System.currentTimeMillis());
                     _alliances.put(memberArray[0] + ":" + memberArray[1], existingMember);
-                }
+
+                    //TODO check for timeout. 
+                    //TODO incorporate a config file with the timeout property
+                } 
             } else {
                 Member newMember = new Member(memberArray[0], Integer.parseInt(memberArray[1]));
                 //TODO set local time for new member
+                newMember.setLocalTime(System.currentTimeMillis());
                 _alliances.put(memberArray[0] + ":" + memberArray[1], newMember);
             }
         }
