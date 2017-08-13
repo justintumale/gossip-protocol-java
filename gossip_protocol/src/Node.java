@@ -30,7 +30,7 @@ public class Node {
 		_alliances = new HashMap<String, Member>();
 		_thisMember = new Member(_address, _port);
 		_thisMember.setLocalTime(System.currentTimeMillis());
-		_alliances.put(_thisMember.getAddress() + String.valueOf(_thisMember.getPort()), _thisMember);
+		_alliances.put(_thisMember.getAddress() + ":" + String.valueOf(_thisMember.getPort()), _thisMember);
 	}
 
 	private void parseAddress(String address) {

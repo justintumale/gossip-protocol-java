@@ -41,7 +41,6 @@ public class GossipperThread implements Runnable {
 		_thisMember.incrementHeartbeat();
 
 		String gossipDigest = createGossipDigest();
-		Logger.info("gossip digest created: " + gossipDigest);
 		//Collections.shuffle(alliances);
 
 		try {
@@ -49,14 +48,26 @@ public class GossipperThread implements Runnable {
 			//TODO randomly select 3 indices in hashmap and gossip to them
 			//TODO create a configuration file that reads in how many nodes to randomly gossip to periodically
 
-			Random rand = new Random();
-			int index1 = rand.nextInt(alliances.size());
-			int index2 = rand.nextInt(alliances.size());
-			int index3 = rand.nextInt(alliances.size()); 
 			HashSet<Integer> randomSet = new HashSet<Integer>();
-			randomSet.add(index1);
-			randomSet.add(index2);
-			randomSet.add(index3);
+
+			if (alliances.size() == 1) {
+				randomSet.add(0);
+			} else if (alliances.size() == 2) {
+				randomSet.add(0);
+				randomSet.add(1);
+			} else if (alliances.size() == 3) {
+				randomSet.add(0);
+				randomSet.add(1);
+				randomSet.add(2);
+			} else {
+				Random rand = new Random();
+				int index1 = rand.nextInt(alliances.size());
+				int index2 = rand.nextInt(alliances.size());
+				int index3 = rand.nextInt(alliances.size()); 
+				randomSet.add(index1);
+				randomSet.add(index2);
+				randomSet.add(index3);
+			}
 
 			/*
 			for (int i = 0; i < alliances.size(); i++) {

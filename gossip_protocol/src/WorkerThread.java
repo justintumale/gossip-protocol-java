@@ -218,9 +218,9 @@ public class WorkerThread implements Runnable {
         }
         for (int i = 0; i < gossipArray.length; i++) {
             String[]memberArray = gossipArray[i].split(":");
-
+            Member existingMember = null;
             synchronized(this) {
-                Member existingMember = _alliances.get(memberArray[0] + ":" + memberArray[1]);
+                existingMember = _alliances.get(memberArray[0] + ":" + memberArray[1]);
             }
 
             if (existingMember != null) {
@@ -248,8 +248,11 @@ public class WorkerThread implements Runnable {
     private void addToMembershipList(String address, int port) {
         Logger.info("Adding " + address + ":" + port + " to alliances...");
         Member ally = new Member(address, port);
+        //TODO Timeouts
         synchronized(this) {
-            _alliances.put(ally.getAddress() + String.valueOf(ally.getPort()), ally);
+            if (!_alliances.containsKey(ally.getAddress() + ":" + String.valueOf(ally.getPort()))) {
+                _alliances.put(ally.getAddress() + ":" + String.valueOf(ally.getPort()), ally);
+            }
         }
         Logger.info(address + ":" + port + " successfully added to alliances.");
     }
