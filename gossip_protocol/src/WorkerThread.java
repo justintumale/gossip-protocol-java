@@ -219,15 +219,18 @@ public class WorkerThread implements Runnable {
         for (int i = 0; i < gossipArray.length; i++) {
             String[]memberArray = gossipArray[i].split(":");
 
-            Member existingMember = _alliances.get(memberArray[0] + ":" + memberArray[1]);
+            synchronized(this) {
+                Member existingMember = _alliances.get(memberArray[0] + ":" + memberArray[1]);
+            }
 
             if (existingMember != null) {
                 if (existingMember.getHeartbeat() < Long.parseLong(memberArray[2])) {
                     existingMember.setHeartbeat(Long.parseLong(memberArray[2]));
                     //set new local time for existing member
                     existingMember.setLocalTime(System.currentTimeMillis());
-                    _alliances.put(memberArray[0] + ":" + memberArray[1], existingMember);
-
+                    synchronized(this) {
+                        _alliances.put(memberArray[0] + ":" + memberArray[1], existingMember);
+                    }
                     //TODO check for timeout. 
                     //TODO incorporate a config file with the timeout property
                 } 
@@ -235,7 +238,9 @@ public class WorkerThread implements Runnable {
                 Member newMember = new Member(memberArray[0], Integer.parseInt(memberArray[1]));
                 //TODO set local time for new member
                 newMember.setLocalTime(System.currentTimeMillis());
-                _alliances.put(memberArray[0] + ":" + memberArray[1], newMember);
+                synchronized(this) {
+                    _alliances.put(memberArray[0] + ":" + memberArray[1], newMember);
+                }
             }
         }
     }

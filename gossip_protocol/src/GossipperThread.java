@@ -29,8 +29,10 @@ public class GossipperThread implements Runnable {
 			digestBuilder.append(member.toString() + "-");
 		}
 		*/
-		for (Map.Entry<String, Member> entry : alliances.entrySet()) {
-			digestBuilder.append(entry.getValue().toString() + "-");
+		synchronized(this) {
+			for (Map.Entry<String, Member> entry : alliances.entrySet()) {
+				digestBuilder.append(entry.getValue().toString() + "-");
+			}
 		}
 		return digestBuilder.toString();
 	}
@@ -66,14 +68,16 @@ public class GossipperThread implements Runnable {
 			}
 			*/
 			int selector = 0;
-			for (Map.Entry<String, Member> entry : alliances.entrySet()) {
-				if (randomSet.contains(selector)){
-					_gossipperSocket = new Socket(entry.getValue().getAddress(), entry.getValue().getPort());
-					_out = new PrintWriter(_gossipperSocket.getOutputStream());
-					_out.println(gossipDigest);
-					_out.close();
+			synchronized(this) {
+				for (Map.Entry<String, Member> entry : alliances.entrySet()) {
+					if (randomSet.contains(selector)){
+						_gossipperSocket = new Socket(entry.getValue().getAddress(), entry.getValue().getPort());
+						_out = new PrintWriter(_gossipperSocket.getOutputStream());
+						_out.println(gossipDigest);
+						_out.close();
+					}
+					selector++;
 				}
-				selector++;
 			}
 
 
