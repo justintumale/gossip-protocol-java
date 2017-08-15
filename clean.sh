@@ -1,0 +1,1 @@
+rm gossip_protocol/src/*.class
