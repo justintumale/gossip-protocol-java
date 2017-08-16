@@ -124,7 +124,7 @@ public class WorkerThread implements Runnable {
     	} catch (IOException e) {
             e.printStackTrace();
     	} 
-        return false;
+        return true;
     }
 
     private boolean recvConnectionRequest(String address) throws IOException {
@@ -194,14 +194,14 @@ public class WorkerThread implements Runnable {
     }
 
     private boolean receiveGossip(String gossipDigest) {
-        String[] memberArray = gossipDigest.split("-");
+
+        String[] fromNode_gossipDigest = gossipDigest.split("_");
+        String[]gossipArray = createGossipArrayFromDigest(fromNode_gossipDigest[0]);
+
         Logger.info("Gossip message received:   ");
-        for (int i = 0; i < memberArray.length; i++) {
-            Logger.info("        " + memberArray[i]);
+        for (int i = 0; i < gossipArray.length; i++) {
+            Logger.info("        " + gossipArray[i]);
         }
-
-        String[]gossipArray = createGossipArrayFromDigest(gossipDigest);
-
         synchronized(this) {
             mergeGossipArray(gossipArray);
         }

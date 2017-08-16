@@ -34,7 +34,7 @@ public class GossipperThread implements Runnable {
 				digestBuilder.append(entry.getValue().toString() + "-");
 			}
 		}
-		return digestBuilder.toString();
+		return  digestBuilder.toString() + "_" + _thisMember.getAddress() + ":" + String.valueOf(_thisMember.getPort());
 	}
 
 	public void sendGossip() {
@@ -101,7 +101,7 @@ public class GossipperThread implements Runnable {
 		Logger.info("Starting gossiper thread...");
 		try {
 			while (_isHealthy.get()) {
-				Thread.sleep(10000);
+				Thread.sleep(3000);
 				Logger.info("Sending gossip...");
 				sendGossip();
 				Logger.info("Gossip sent");
