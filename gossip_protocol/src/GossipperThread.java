@@ -14,11 +14,13 @@ public class GossipperThread implements Runnable {
 	private Socket _gossipperSocket;
 	private PrintWriter _out;
 	private final AtomicBoolean _isHealthy;
+	private long _timeout;
 
 	public GossipperThread(Member thisMember, HashMap<String, Member> alliances, AtomicBoolean isHealthy) {
 		_thisMember = thisMember;
 		this.alliances = alliances;
 		_isHealthy = isHealthy;
+		_timeout = 5000;
 	}
 
 	public String createGossipDigest() {
@@ -31,7 +33,8 @@ public class GossipperThread implements Runnable {
 		*/
 		synchronized(this) {
 			for (Map.Entry<String, Member> entry : alliances.entrySet()) {
-				digestBuilder.append(entry.getValue().toString() + "-");
+				Member member = entry.getValue();
+				digestBuilder.append(member.toString() + "-");
 			}
 		}
 		return  digestBuilder.toString() + "_" + _thisMember.getAddress() + ":" + String.valueOf(_thisMember.getPort());
@@ -40,49 +43,48 @@ public class GossipperThread implements Runnable {
 	public void sendGossip() {
 		_thisMember.incrementHeartbeat();
 
+		//fail nodes or remove dead nodes
+		cleanMembershipList();
+
 		String gossipDigest = createGossipDigest();
-		//Collections.shuffle(alliances);
+		Logger.info("GOSSIP DIGEST CREATED " + gossipDigest);
 
 		try {
-			//TODO select 3 random nodes from the hashmap
-			//TODO randomly select 3 indices in hashmap and gossip to them
+
 			//TODO create a configuration file that reads in how many nodes to randomly gossip to periodically
+
+			//get the live nodes
+			HashSet<Member> liveNodes = getLiveNodes();
 
 			HashSet<Integer> randomSet = new HashSet<Integer>();
 
-			if (alliances.size() == 1) {
+			if (liveNodes.size() == 1) {
 				randomSet.add(0);
-			} else if (alliances.size() == 2) {
+			} else if (liveNodes.size() == 2) {
 				randomSet.add(0);
 				randomSet.add(1);
-			} else if (alliances.size() == 3) {
+			} else if (liveNodes.size() == 3) {
 				randomSet.add(0);
 				randomSet.add(1);
 				randomSet.add(2);
 			} else {
+				//TODO better implementation. random indices may end up being the same.
 				Random rand = new Random();
-				int index1 = rand.nextInt(alliances.size());
-				int index2 = rand.nextInt(alliances.size());
-				int index3 = rand.nextInt(alliances.size()); 
+				int index1 = rand.nextInt(liveNodes.size());
+				int index2 = rand.nextInt(liveNodes.size());
+				int index3 = rand.nextInt(liveNodes.size()); 
 				randomSet.add(index1);
 				randomSet.add(index2);
 				randomSet.add(index3);
 			}
 
-			/*
-			for (int i = 0; i < alliances.size(); i++) {
-				if (i > 3) { break; }
-				_gossipperSocket = new Socket(alliances.get(i).getAddress(), alliances.get(i).getPort());
-				_out = new PrintWriter(_gossipperSocket.getOutputStream());
-				_out.println(gossipDigest);
-				_out.close();
-			}
-			*/
 			int selector = 0;
 			synchronized(this) {
-				for (Map.Entry<String, Member> entry : alliances.entrySet()) {
+				Iterator<Member> iterator = liveNodes.iterator();
+				while (iterator.hasNext()) {
 					if (randomSet.contains(selector)){
-						_gossipperSocket = new Socket(entry.getValue().getAddress(), entry.getValue().getPort());
+						Member member = iterator.next();
+						_gossipperSocket = new Socket(member.getAddress(), member.getPort());
 						_out = new PrintWriter(_gossipperSocket.getOutputStream());
 						_out.println(gossipDigest);
 						_out.close();
@@ -91,10 +93,47 @@ public class GossipperThread implements Runnable {
 				}
 			}
 
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void cleanMembershipList() {
+		HashSet<Member> toRemove = null;
+		synchronized(this) {
+			for (Map.Entry<String, Member> entry : alliances.entrySet()) {
+				Member member = entry.getValue();
+				if (System.currentTimeMillis() - member.getLocalTime() > (_timeout*2)) {
+					if (toRemove == null) {
+						toRemove = new HashSet<Member>();
+					}
+					toRemove.add(entry.getValue());
+				} else if (System.currentTimeMillis() - member.getLocalTime() > _timeout) {
+					member.setFail(true);
+				}
+			}
+
+			if (toRemove != null) {
+				Iterator<Member> iterator = toRemove.iterator();
+				while(iterator.hasNext()) {
+					Member member = iterator.next();
+					alliances.remove(member.getAddress() + ":" + member.getPort());
+				}
+			}
+		}
+	}
+
+	private HashSet<Member> getLiveNodes() {
+		HashSet<Member> liveNodes = new HashSet<Member>();
+		synchronized(this) {
+			for (Map.Entry<String, Member> entry : alliances.entrySet()) {
+				Member member = entry.getValue();
+				if (!member.isFailed()) {
+					liveNodes.add(member);
+				}
+			}
+		}
+		return liveNodes;
 	}
 
 	public void run() {

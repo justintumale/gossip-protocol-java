@@ -25,6 +25,7 @@ public class WorkerThread implements Runnable {
     protected HashMap<String, Member> _alliances;
     private String _address;
     private int _port;
+    private long _timeout;
 
     public WorkerThread(Socket listenerSocket, ServerSocket serverSocket, HashMap<String, Member> alliances, 
     AtomicBoolean isHealthy, String address, int port) {
@@ -34,6 +35,7 @@ public class WorkerThread implements Runnable {
         _isHealthy = isHealthy;
         _address = address;
         _port = port;
+        _timeout = 5000;
     }
 
     public void run() {
@@ -198,13 +200,18 @@ public class WorkerThread implements Runnable {
         String[] fromNode_gossipDigest = gossipDigest.split("_");
         String[]gossipArray = createGossipArrayFromDigest(fromNode_gossipDigest[0]);
 
+        String[] fromNodeArray = fromNode_gossipDigest[0].split(":");
+        Member fromNode = null;
+        synchronized(this) {
+            fromNode = _alliances.get(fromNode_gossipDigest[0] + ":" + fromNode_gossipDigest[1]);
+        }
         Logger.info("Gossip message received:   ");
         for (int i = 0; i < gossipArray.length; i++) {
             Logger.info("        " + gossipArray[i]);
         }
-        synchronized(this) {
-            mergeGossipArray(gossipArray);
-        }
+
+        mergeGossipArray(fromNode, gossipArray);
+        
         return false;
     }
 
@@ -212,31 +219,31 @@ public class WorkerThread implements Runnable {
         return gossipDigest.split("-");
     }
 
-    private void mergeGossipArray(String[] gossipArray) {
+    private void mergeGossipArray(Member fromNode, String[] gossipArray) {
         if (gossipArray.length < 1) {
             Logger.error("Could not merge gossip message.");
         }
         for (int i = 0; i < gossipArray.length; i++) {
-            String[]memberArray = gossipArray[i].split(":");
+            String[]memberArray = gossipArray[i].split(":");        //split gossip array elements into address, port, and heartbeat
             Member existingMember = null;
             synchronized(this) {
                 existingMember = _alliances.get(memberArray[0] + ":" + memberArray[1]);
             }
 
             if (existingMember != null) {
-                if (existingMember.getHeartbeat() < Long.parseLong(memberArray[2])) {
-                    existingMember.setHeartbeat(Long.parseLong(memberArray[2]));
-                    //set new local time for existing member
-                    existingMember.setLocalTime(System.currentTimeMillis());
-                    synchronized(this) {
-                        _alliances.put(memberArray[0] + ":" + memberArray[1], existingMember);
+                if (existingMember.isFailed()) {
+                    if (fromNode.compareTo(existingMember) != 0) {
+                        continue;
                     }
-                    //TODO check for timeout. 
-                    //TODO incorporate a config file with the timeout property
-                } 
+                }
+
+                existingMember.setHeartbeat(Long.parseLong(memberArray[2]));
+                existingMember.setLocalTime(System.currentTimeMillis());
+                synchronized(this) {
+                   _alliances.put(memberArray[0] + ":" + memberArray[1], existingMember);
+                }
             } else {
                 Member newMember = new Member(memberArray[0], Integer.parseInt(memberArray[1]));
-                //TODO set local time for new member
                 newMember.setLocalTime(System.currentTimeMillis());
                 synchronized(this) {
                     _alliances.put(memberArray[0] + ":" + memberArray[1], newMember);

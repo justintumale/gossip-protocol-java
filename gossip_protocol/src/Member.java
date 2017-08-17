@@ -7,15 +7,18 @@ public class Member implements Comparable<Member> {
     private int _port;
     private long _heartbeat;
     private long _localTime;
+    private boolean _failed;
 
     public Member() {
         _heartbeat = 0;
+        _failed = false;
     }
 
     public Member(String address, int port) {
         _address = address;
     	_port = port;
     	_heartbeat = 0;
+        _failed = false;
     }
 
     public Member(String address, int port, long heartbeat) {
@@ -62,6 +65,14 @@ public class Member implements Comparable<Member> {
 
     public String toString() {
         return _address + ":" + String.valueOf(_port) + ":" + String.valueOf(_heartbeat);
+    }
+
+    public boolean isFailed() {
+        return _failed;
+    }
+
+    public void setFail(boolean isFailed) {
+        _failed = isFailed;
     }
 
     public int compareTo(Member m)
