@@ -255,6 +255,7 @@ public class WorkerThread implements Runnable {
     private void addToMembershipList(String address, int port) {
         Logger.info("Adding " + address + ":" + port + " to alliances...");
         Member ally = new Member(address, port);
+        ally.setLocalTime(System.currentTimeMillis());
         //TODO Timeouts
         synchronized(this) {
             if (!_alliances.containsKey(ally.getAddress() + ":" + String.valueOf(ally.getPort()))) {
