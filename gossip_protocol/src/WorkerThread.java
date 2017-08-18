@@ -223,6 +223,7 @@ public class WorkerThread implements Runnable {
         if (gossipArray.length < 1) {
             Logger.error("Could not merge gossip message.");
         }
+
         for (int i = 0; i < gossipArray.length; i++) {
             String[]memberArray = gossipArray[i].split(":");        //split gossip array elements into address, port, and heartbeat
             Member existingMember = null;
@@ -236,11 +237,21 @@ public class WorkerThread implements Runnable {
                         continue;
                     }
                 }
-
-                existingMember.setHeartbeat(Long.parseLong(memberArray[2]));
-                existingMember.setLocalTime(System.currentTimeMillis());
-                synchronized(this) {
-                   _alliances.put(memberArray[0] + ":" + memberArray[1], existingMember);
+                if (Long.parseLong(memberArray[2]) > existingMember.getHeartbeat()) {   //only merge if the incoming member's heartbeat is greater
+                    if (System.currentTimeMillis() - existingMember.getLocalTime() <= _timeout) { //and if not is not timed out
+                        existingMember.setHeartbeat(Long.parseLong(memberArray[2]));
+                        Logger.info("Updating local time of " + existingMember.toString() + " to " + System.currentTimeMillis());
+                        Logger.info(existingMember.getLocalTime() + " ==> " + System.currentTimeMillis());
+                        Logger.info(String.valueOf(System.currentTimeMillis() - existingMember.getLocalTime()));
+                        existingMember.setLocalTime(System.currentTimeMillis());
+                        synchronized(this) {
+                           _alliances.put(memberArray[0] + ":" + memberArray[1], existingMember);
+                        }
+                    } else {
+                        Logger.info("Not updating local time of " + existingMember.toString() + " to " + System.currentTimeMillis());
+                        Logger.info(existingMember.getLocalTime() + " ==> " + System.currentTimeMillis());
+                        Logger.info(String.valueOf(System.currentTimeMillis() - existingMember.getLocalTime()));
+                    }
                 }
             } else {
                 Member newMember = new Member(memberArray[0], Integer.parseInt(memberArray[1]));

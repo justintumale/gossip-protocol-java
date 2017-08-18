@@ -67,6 +67,10 @@ public class Member implements Comparable<Member> {
         return _address + ":" + String.valueOf(_port) + ":" + String.valueOf(_heartbeat);
     }
 
+    public String toStringWithLocalTime() {
+        return _address + ":" + String.valueOf(_port) + ":" + String.valueOf(_heartbeat) + ":" + String.valueOf(_localTime);   
+    }
+
     public boolean isFailed() {
         return _failed;
     }

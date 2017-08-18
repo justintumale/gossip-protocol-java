@@ -26,76 +26,92 @@ public class GossipperThread implements Runnable {
 	public String createGossipDigest() {
 		StringBuilder digestBuilder = new StringBuilder();
 		digestBuilder.append("gossip ");
-		/*
-		for (Member member : alliances) {
-			digestBuilder.append(member.toString() + "-");
-		}
-		*/
+
 		synchronized(this) {
 			for (Map.Entry<String, Member> entry : alliances.entrySet()) {
 				Member member = entry.getValue();
-				digestBuilder.append(member.toString() + "-");
+				if (!member.isFailed()) {
+					Logger.info(" APPENDING MEMBER " + member.toString());
+					digestBuilder.append(member.toString() + "-");
+				}
 			}
 		}
 		return  digestBuilder.toString() + "_" + _thisMember.getAddress() + ":" + String.valueOf(_thisMember.getPort());
 	}
 
 	public void sendGossip() {
+		Logger.info("Begin sendGossip()...");
+		
 		_thisMember.incrementHeartbeat();
+		_thisMember.setLocalTime(System.currentTimeMillis());
+		synchronized(this) {
+			alliances.put(_thisMember.getAddress() + ":" + String.valueOf(_thisMember.getPort()), _thisMember);
+		}
 
 		//fail nodes or remove dead nodes
 		cleanMembershipList();
+		Logger.info("Membership list cleaned");
+		Logger.info("Current time     " + System.currentTimeMillis());
+		synchronized(this) {
+			for (Map.Entry<String, Member> entry : alliances.entrySet()) {
+				Logger.info(entry.getValue().toStringWithLocalTime());
+			}
+		}
 
 		String gossipDigest = createGossipDigest();
 		Logger.info("GOSSIP DIGEST CREATED " + gossipDigest);
 
-		try {
+		//TODO create a configuration file that reads in how many nodes to randomly gossip to periodically
 
-			//TODO create a configuration file that reads in how many nodes to randomly gossip to periodically
+		//get the live nodes
+		HashSet<Member> liveNodes = getLiveNodes();
 
-			//get the live nodes
-			HashSet<Member> liveNodes = getLiveNodes();
+		HashSet<Integer> randomSet = new HashSet<Integer>();
+		Logger.info(" S I Z E  O F  L I V E " + String.valueOf(liveNodes.size()));
+		if (liveNodes.size() == 0) {
+			Logger.error("NO LIVE NODES");
+			return;
+		} else if (liveNodes.size() == 1) {
+			randomSet.add(0);
+		} else if (liveNodes.size() == 2) {
+			randomSet.add(0);
+			randomSet.add(1);
+		} else if (liveNodes.size() == 3) {
+			randomSet.add(0);
+			randomSet.add(1);
+			randomSet.add(2);
+		} else {
+			//TODO better implementation. random indices may end up being the same.
+			Random rand = new Random();
+			int index1 = rand.nextInt(liveNodes.size());
+			int index2 = rand.nextInt(liveNodes.size());
+			int index3 = rand.nextInt(liveNodes.size()); 
+			randomSet.add(index1);
+			randomSet.add(index2);
+			randomSet.add(index3);
+		}
 
-			HashSet<Integer> randomSet = new HashSet<Integer>();
-
-			if (liveNodes.size() == 1) {
-				randomSet.add(0);
-			} else if (liveNodes.size() == 2) {
-				randomSet.add(0);
-				randomSet.add(1);
-			} else if (liveNodes.size() == 3) {
-				randomSet.add(0);
-				randomSet.add(1);
-				randomSet.add(2);
-			} else {
-				//TODO better implementation. random indices may end up being the same.
-				Random rand = new Random();
-				int index1 = rand.nextInt(liveNodes.size());
-				int index2 = rand.nextInt(liveNodes.size());
-				int index3 = rand.nextInt(liveNodes.size()); 
-				randomSet.add(index1);
-				randomSet.add(index2);
-				randomSet.add(index3);
-			}
-
-			int selector = 0;
-			synchronized(this) {
-				Iterator<Member> iterator = liveNodes.iterator();
-				while (iterator.hasNext()) {
-					if (randomSet.contains(selector)){
-						Member member = iterator.next();
+		int selector = 0;
+		synchronized(this) {
+			Iterator<Member> iterator = liveNodes.iterator();
+			while (iterator.hasNext()) {
+				if (randomSet.contains(selector)){
+					Member member = iterator.next();
+					Logger.info("GOSSIPPING TO : " + member.getAddress() + ":" + member.getPort());
+					try {
 						_gossipperSocket = new Socket(member.getAddress(), member.getPort());
 						_out = new PrintWriter(_gossipperSocket.getOutputStream());
 						_out.println(gossipDigest);
 						_out.close();
+					} catch (IOException ex) {
+						ex.printStackTrace();
+						continue;
 					}
-					selector++;
 				}
+				selector++;
 			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
+		Logger.info("...end sendGossip()");
 	}
 
 	private void cleanMembershipList() {
@@ -109,8 +125,12 @@ public class GossipperThread implements Runnable {
 					}
 					toRemove.add(entry.getValue());
 				} else if (System.currentTimeMillis() - member.getLocalTime() > _timeout) {
+					Logger.info("SETTING FAIL FOR " + member.getAddress() + ":" + member.getPort() + " ......");
+					Logger.info("	System current time   " + System.currentTimeMillis());
+					Logger.info("	local time for member " + member.getLocalTime());
+					Logger.info("	difference " + (System.currentTimeMillis() - member.getLocalTime()));
 					member.setFail(true);
-				}
+				} 
 			}
 
 			if (toRemove != null) {
